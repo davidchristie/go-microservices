@@ -1,0 +1,17 @@
+input CreateAccount {
+  email: String!
+  name: String!
+  password: String!
+}
+
+type Account {
+  id: ID!
+}
+
+type Mutation {
+  createAccount(input: CreateAccount!): Account!
+}
+
+type Query {
+  account: Account
+}

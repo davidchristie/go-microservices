@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  accounts:
+    build:
+      context: ../..
+      dockerfile: services/accounts/Dockerfile
+    environment:
+      - PORT=5000
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile: services/gateway/Dockerfile
+    environment:
+      - ACCOUNTS_URL=accounts:5000
+      - PORT=5000
+    ports:
+      - 5000:5000

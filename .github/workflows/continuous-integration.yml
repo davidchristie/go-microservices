@@ -1,0 +1,25 @@
+name: Continous Integration
+
+on: [push]
+
+jobs:
+  acceptance-tests:
+    name: Acceptance Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        directory: [environments/production]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build service images
+        run: docker-compose build
+        working-directory: ${{ matrix.directory }}
+      - name: Start service containers
+        run: docker-compose up -d
+        working-directory: ${{ matrix.directory }}
+      - name: Install test dependencies
+        run: go get -t ./...
+        working-directory: acceptance-tests
+      - name: Run acceptance tests
+        run: go test -count=1 ./...
+        working-directory: acceptance-tests
