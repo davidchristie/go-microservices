@@ -1,35 +1,24 @@
 package main
 
 import (
+	"net"
+
 	"github.com/davidchristie/go-microservices/services/accounts"
 	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/grpclog"
-	"net"
-	"os"
 )
 
-const defaultPort = "5000"
+type server struct{}
 
-func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-
-	listener, err := net.Listen("tcp", ":"+port)
-	if err != nil {
-		grpclog.Fatalf("failed to listen: %v", err)
-	}
-
+// Serve starts the server.
+func Serve(listener net.Listener) error {
 	opts := []grpc.ServerOption{}
 	grpcServer := grpc.NewServer(opts...)
-	accounts.RegisterAccountsServer(grpcServer, &server{})
-	grpcServer.Serve(listener)
+	server := &server{}
+	accounts.RegisterAccountsServer(grpcServer, server)
+	return grpcServer.Serve(listener)
 }
-
-type server struct{}
 
 func (s *server) CreateAccount(ctx context.Context, request *accounts.CreateAccountRequest) (*accounts.CreateAccountResponse, error) {
 	id := uuid.New()

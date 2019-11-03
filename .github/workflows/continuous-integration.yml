@@ -23,3 +23,18 @@ jobs:
       - name: Run acceptance tests
         run: go test -count=1 ./...
         working-directory: acceptance-tests
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        directory: [services/accounts]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install test dependencies
+        run: go get -t ./...
+        working-directory: ${{ matrix.directory }}
+      - name: Run unit tests
+        run: go test -cover ./...
+        working-directory: ${{ matrix.directory }}
