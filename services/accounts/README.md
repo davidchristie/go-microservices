@@ -7,5 +7,5 @@ An internal service for managing user accounts.
 Generate protocol buffer source code:
 
 ```console
-protoc -I . proto/accounts.proto --go_out=plugins=grpc:.
+protoc -I . accounts.proto --go_out=plugins=grpc:.
 ```

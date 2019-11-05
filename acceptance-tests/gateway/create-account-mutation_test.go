@@ -3,40 +3,67 @@ package gateway
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 const url = "http://localhost:5000/query"
-const requestBody = `
-	{
-		"operationName": null,
-		"variables": {
-			"email": "test@email.com",
-			"name": "Test Account",
-			"password": "test_password123"
-		},
-		"query": "mutation CreateAccount($email: String!, $name: String!, $password: String!) { createAccount(input: {email: $email, name: $name, password: $password}) { id } }"
-	}
-`
 
 type Account struct {
-	ID string
+	Email string `json:"email"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
 }
 
 type Data struct {
-	CreateAccount Account
+	CreateAccount Account `json:"createAccount"`
 }
 
 type ResponseBody struct {
-	Data Data
+	Data Data `json:"data"`
+}
+
+type RequestBody struct {
+	OperationName string    `json:"operationName"`
+	Variables     Variables `json:"variables"`
+	Query         string    `json:"query"`
+}
+
+type Variables struct {
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
+func sendRequest(variables Variables) *http.Response {
+
+	requestBody := RequestBody{
+		Variables: variables,
+		Query:     "mutation CreateAccount($email: String!, $name: String!, $password: String!) { createAccount(input: {email: $email, name: $name, password: $password}) { id } }",
+	}
+
+	requestBodyBytes, err := json.Marshal(requestBody)
+	if err != nil {
+		panic(err)
+	}
+
+	request, err := http.NewRequest("POST", url, bytes.NewBuffer(requestBodyBytes))
+	request.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		panic(err)
+	}
+	return response
 }
 
 func unmarshalResponseBody(response *http.Response) ResponseBody {
 	blob, err := ioutil.ReadAll(response.Body)
+
 	if err != nil {
 		panic(err)
 	}
@@ -48,19 +75,12 @@ func unmarshalResponseBody(response *http.Response) ResponseBody {
 	return body
 }
 
-func sendRequest() *http.Response {
-	request, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(requestBody)))
-	request.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		panic(err)
-	}
-	return response
-}
-
 func TestRequest(t *testing.T) {
-	response := sendRequest()
+	response := sendRequest(Variables{
+		Email:    "test.user+" + uuid.New().String() + "@email.com",
+		Name:     "Test User",
+		Password: "te$t_user123",
+	})
 	defer response.Body.Close()
 
 	t.Run("StatusCode", func(t *testing.T) {
@@ -80,6 +100,7 @@ func TestRequest(t *testing.T) {
 	})
 
 	body := unmarshalResponseBody(response)
+	t.Logf("response body: %s", body)
 
 	t.Run("HasAccountID", func(t *testing.T) {
 		_, err := uuid.Parse(body.Data.CreateAccount.ID)

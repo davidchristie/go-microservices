@@ -5,8 +5,29 @@ services:
     build:
       context: ../..
       dockerfile: services/accounts/Dockerfile
+    depends_on:
+      - accounts-database-migrate
     environment:
+      - DATABASE_HOST=accounts-database
+      - DATABASE_PASSWORD=acc0unts_secret123
       - PORT=5000
+  
+  accounts-database:
+    environment:
+      - POSTGRES_DB=accounts
+      - POSTGRES_PASSWORD=acc0unts_secret123
+      - POSTGRES_USER=accounts
+    image: postgres:12.0
+    restart: always
+
+  accounts-database-migrate:
+    command: -database postgres://accounts:acc0unts_secret123@accounts-database:5432/accounts?sslmode=disable -path=/migrations/ up
+    depends_on:
+      - accounts-database
+    image: migrate/migrate
+    restart: on-failure
+    volumes:
+      - ../../services/accounts/database/migrations:/migrations
 
   gateway:
     build:

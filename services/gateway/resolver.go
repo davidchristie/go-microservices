@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+
 	"github.com/davidchristie/go-microservices/services/accounts"
 	"github.com/davidchristie/go-microservices/services/accounts/client"
 )
@@ -21,12 +22,16 @@ func (r *Resolver) Query() QueryResolver {
 type mutationResolver struct{ *Resolver }
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, input CreateAccount) (*Account, error) {
-	createdAccount, err := clientInstance.CreateAccount(context.Background(), &accounts.CreateAccountRequest{Email: "", Name: "", Password: ""})
+	newAccount, err := clientInstance.CreateAccount(context.Background(), &accounts.CreateAccountRequest{
+		Email:    input.Email,
+		Name:     input.Name,
+		Password: input.Password,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &Account{ID: createdAccount.Id}, nil
+	return &Account{Email: newAccount.Email, ID: newAccount.Id, Name: newAccount.Name}, nil
 }
 
 type queryResolver struct{ *Resolver }
