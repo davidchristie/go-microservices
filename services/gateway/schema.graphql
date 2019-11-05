@@ -5,7 +5,9 @@ input CreateAccount {
 }
 
 type Account {
+  email: String!
   id: ID!
+  name: String!
 }
 
 type Mutation {

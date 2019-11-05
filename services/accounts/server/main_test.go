@@ -2,27 +2,14 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net"
-	"os"
 	"testing"
+
+	"github.com/davidchristie/go-microservices/services/accounts/server/api"
 )
 
-func TestMain(m *testing.M) {
-	rc := m.Run()
-
-	// rc 0 means the tests have passed
-	// CoverMode will be non-empty if run with the -cover flag
-	if rc == 0 && testing.CoverMode() != "" {
-		c := testing.Coverage()
-		// Require 100% coverage
-		if c < 1 {
-			fmt.Println("Tests passed but coverage failed at", c)
-			rc = -1
-		}
-	}
-
-	os.Exit(rc)
+type mockListener struct {
+	net.Listener
 }
 
 func TestNetworkError(t *testing.T) {
@@ -46,17 +33,26 @@ func TestNetworkError(t *testing.T) {
 }
 
 func TestServe(t *testing.T) {
-	original := serve
+	originalNewListener := newListener
+
+	newListener = func() (net.Listener, error) {
+		return mockListener{}, nil
+	}
+
+	originalServe := serve
 	called := false
-	serve = func(listener net.Listener) error {
+	serve = func(listener net.Listener, handlers api.Handlers) error {
 		called = true
 		return nil
 	}
+
 	defer func() {
-		serve = original
+		serve = originalServe
+		newListener = originalNewListener
+
 	}()
 	main()
 	if !called {
-		t.Fatal("Serve function was not called")
+		t.Fatal("serve function was not called")
 	}
 }

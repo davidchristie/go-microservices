@@ -8,21 +8,48 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        directory: [environments/production]
+        environment: [production]
     steps:
       - uses: actions/checkout@v1
       - name: Build service images
         run: docker-compose build
-        working-directory: ${{ matrix.directory }}
+        working-directory: environments/${{ matrix.environment }}
       - name: Start service containers
         run: docker-compose up -d
-        working-directory: ${{ matrix.directory }}
+        working-directory: environments/${{ matrix.environment }}
       - name: Install test dependencies
         run: go get -t ./...
         working-directory: acceptance-tests
       - name: Run acceptance tests
-        run: go test -count=1 ./...
+        run: go test ./...
         working-directory: acceptance-tests
+
+  system-tests:
+    name: System Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [production]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build service images
+        run: docker-compose build
+        working-directory: environments/${{ matrix.environment }}
+      - name: Start service containers
+        run: docker-compose up -d
+        working-directory: environments/${{ matrix.environment }}
+      - name: Run system tests
+        env:
+          NETWORK: ${{ matrix.environment }}_default
+        run: |
+          docker run \
+              --network $NETWORK \
+              --rm \
+              --volume "$(pwd)/..:/go/src/github.com/davidchristie/go-microservices" \
+              --workdir /go/src/github.com/davidchristie/go-microservices/system-tests \
+              golang \
+              go test ./...
+        working-directory: system-tests
 
   unit-tests:
     name: Unit Tests

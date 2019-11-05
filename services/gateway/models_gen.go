@@ -3,7 +3,9 @@
 package gateway
 
 type Account struct {
-	ID string `json:"id"`
+	Email string `json:"email"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
 }
 
 type CreateAccount struct {

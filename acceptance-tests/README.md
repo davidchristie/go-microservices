@@ -8,8 +8,8 @@ Install test dependences:
 go get -t ./...
 ```
 
-Run the tests (`-count=1` disables caching test results):
+Run the tests:
 
 ```console
-go test -count=1 ./...
+go test ./...
 ```

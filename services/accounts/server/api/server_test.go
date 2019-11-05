@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"context"
@@ -15,9 +15,18 @@ import (
 
 const bufSize = 1024 * 1024
 
+type mockHandlers struct {
+	Handlers
+}
+
+func (m mockHandlers) CreateAccount(ctx context.Context, request *accounts.CreateAccountRequest) (*accounts.CreateAccountResponse, error) {
+	response := &accounts.CreateAccountResponse{Email: "mock@email.com", Id: uuid.New().String(), Name: "Mock"}
+	return response, nil
+}
+
 func startServer(listener net.Listener) {
 	go func() {
-		if err := Serve(listener); err != nil {
+		if err := Serve(listener, mockHandlers{}); err != nil {
 			log.Printf("Server exited with error: %v", err)
 		}
 	}()
@@ -25,6 +34,7 @@ func startServer(listener net.Listener) {
 
 func TestCreateAccount(t *testing.T) {
 	listener := bufconn.Listen(bufSize)
+	defer listener.Close()
 
 	startServer(listener)
 	ctx := context.Background()
@@ -52,6 +62,4 @@ func TestCreateAccount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Invalid account ID: %v", err)
 	}
-
-	listener.Close()
 }
