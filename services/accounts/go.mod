@@ -7,6 +7,7 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1
 	github.com/lib/pq v1.2.0
+	github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	golang.org/x/net v0.0.0-20191101175033-0deb6923b6d9
 	golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c // indirect

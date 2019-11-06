@@ -8,6 +8,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/lib/pq v1.2.0
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	google.golang.org/grpc v1.24.0
 )
 
 replace github.com/davidchristie/go-microservices/libraries/testing/data => ../libraries/testing/data
