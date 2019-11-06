@@ -2,9 +2,11 @@ package gateway
 
 import (
 	"context"
+	"errors"
 
 	"github.com/davidchristie/go-microservices/services/accounts"
 	"github.com/davidchristie/go-microservices/services/accounts/client"
+	"google.golang.org/grpc/status"
 )
 
 type Resolver struct{}
@@ -28,7 +30,10 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, input CreateAccoun
 		Password: input.Password,
 	})
 	if err != nil {
-		return nil, err
+		if st, ok := status.FromError(err); ok {
+			return nil, errors.New(st.Message())
+		}
+		return nil, errors.New("Unknown error occured")
 	}
 
 	return &Account{Email: newAccount.Email, ID: newAccount.Id, Name: newAccount.Name}, nil

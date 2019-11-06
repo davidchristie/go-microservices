@@ -28,14 +28,8 @@ type CreateAccountInput struct {
 
 // CreateAccount attempts to create a new account.
 func CreateAccount(input *CreateAccountInput) (*Account, error) {
-	if input.Email == "" {
-		return nil, errors.New("email cannot be empty")
-	}
-	if input.Name == "" {
-		return nil, errors.New("name cannot be empty")
-	}
-	if input.Password == "" {
-		return nil, errors.New("password cannot be empty")
+	if err := validate(input); err != nil {
+		return nil, err
 	}
 
 	id := uuid.New()
@@ -57,4 +51,28 @@ func CreateAccount(input *CreateAccountInput) (*Account, error) {
 	}
 
 	return &Account{Email: account.Email, ID: account.ID, Name: account.Name}, nil
+}
+
+func validate(input *CreateAccountInput) error {
+	validations := []func(*CreateAccountInput) error{validateEmail, validateName, validatePassword}
+	for _, validation := range validations {
+		if err := validation(input); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateEmail(input *CreateAccountInput) error {
+	if input.Email == "" {
+		return errors.New("empty email")
+	}
+	return nil
+}
+
+func validateName(input *CreateAccountInput) error {
+	if input.Name == "" {
+		return errors.New("empty name")
+	}
+	return nil
 }

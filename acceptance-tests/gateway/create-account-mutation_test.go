@@ -79,7 +79,7 @@ func TestRequest(t *testing.T) {
 	response := sendRequest(Variables{
 		Email:    "test.user+" + uuid.New().String() + "@email.com",
 		Name:     "Test User",
-		Password: "te$t_user123",
+		Password: "!*pZJpiiqpC6WVT*HBM3",
 	})
 	defer response.Body.Close()
 

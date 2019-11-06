@@ -13,12 +13,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const connStr = "postgres://accounts:acc0unts_secret123@accounts-database:5432/accounts?sslmode=disable"
+const accountsDatabaseURL = "postgres://accounts:acc0unts_secret123@accounts-database:5432/accounts?sslmode=disable"
 
 func TestScenario(t *testing.T) {
 	// Send the CreateAccount gRPC request
 	const name = "Test User"
-	const password = "te$t_user123"
+	const password = "2J3xtr_Z9xnobGQPJkDW"
 	email := data.NewUniqueEmail()
 	clientInstance := client.New()
 	response, err := clientInstance.CreateAccount(context.Background(), &accounts.CreateAccountRequest{
@@ -42,7 +42,7 @@ func TestScenario(t *testing.T) {
 	}
 
 	// Verify the account was inserted into the database
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", accountsDatabaseURL)
 	if err != nil {
 		t.Fatalf("could not connect to database: %s", err)
 	}
