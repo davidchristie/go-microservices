@@ -7,12 +7,8 @@ import (
 	"github.com/nbutton23/zxcvbn-go/scoring"
 )
 
-// WeakPasswordError is produced when a weak password is validated.
-type WeakPasswordError struct{}
-
-func (e *WeakPasswordError) Error() string {
-	return "weak password"
-}
+// ErrWeakPassword is returned by CreateAccount when the password is too weak.
+var ErrWeakPassword = errors.New("weak password")
 
 func validatePassword(input *CreateAccountInput) error {
 	if input.Password == "" {
@@ -20,7 +16,7 @@ func validatePassword(input *CreateAccountInput) error {
 	}
 	result := passwordStrength(input)
 	if result.Score < 4 {
-		return &WeakPasswordError{}
+		return ErrWeakPassword
 	}
 	return nil
 }

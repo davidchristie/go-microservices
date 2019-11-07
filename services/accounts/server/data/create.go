@@ -1,4 +1,4 @@
-package accounts
+package data
 
 import (
 	"context"
@@ -7,16 +7,6 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/lib/pq" // postgres driver
 )
-
-const connStr = "postgres://accounts:acc0unts_secret123@accounts-database:5432/accounts?sslmode=disable"
-
-// Account is a data-layer representation of an account.
-type Account struct {
-	Email        string
-	ID           uuid.UUID
-	Name         string
-	PasswordHash string
-}
 
 // CreateAccountInput is the input passed into the CreateAccount function.
 type CreateAccountInput struct {
@@ -53,5 +43,5 @@ func CreateAccount(input *CreateAccountInput) (*Account, error) {
 
 	tx.Commit()
 
-	return &Account{Email: input.Email, ID: input.ID, Name: input.Name, PasswordHash: input.PasswordHash}, nil
+	return newAccount(input.ID, input.Name, input.Email), nil
 }

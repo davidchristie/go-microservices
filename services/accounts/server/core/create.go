@@ -4,19 +4,12 @@ import (
 	"context"
 	"errors"
 
-	db "github.com/davidchristie/go-microservices/services/accounts/server/data/repositories/accounts"
+	"github.com/davidchristie/go-microservices/services/accounts/server/data"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const bcryptCost = 10
-
-// Account is the core representation of an account.
-type Account struct {
-	Email string
-	ID    uuid.UUID
-	Name  string
-}
 
 // CreateAccountInput is the input passed into the CreateAccount function.
 type CreateAccountInput struct {
@@ -39,7 +32,7 @@ func CreateAccount(input *CreateAccountInput) (*Account, error) {
 		return nil, err
 	}
 
-	account, err := db.CreateAccount(&db.CreateAccountInput{
+	acc, err := data.CreateAccount(&data.CreateAccountInput{
 		Context:      input.Context,
 		Email:        input.Email,
 		ID:           id,
@@ -50,7 +43,7 @@ func CreateAccount(input *CreateAccountInput) (*Account, error) {
 		return nil, err
 	}
 
-	return &Account{Email: account.Email, ID: account.ID, Name: account.Name}, nil
+	return convertAccount(acc), nil
 }
 
 func validate(input *CreateAccountInput) error {
@@ -59,13 +52,6 @@ func validate(input *CreateAccountInput) error {
 		if err := validation(input); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func validateEmail(input *CreateAccountInput) error {
-	if input.Email == "" {
-		return errors.New("empty email")
 	}
 	return nil
 }

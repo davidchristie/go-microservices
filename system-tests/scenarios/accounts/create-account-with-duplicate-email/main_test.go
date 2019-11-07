@@ -12,22 +12,31 @@ import (
 )
 
 func TestScenario(t *testing.T) {
-	// Send the CreateAccount gRPC request
-	const name = "Test User"
-	const password = "test_u$er123"
-	email := data.NewUniqueEmail()
 	clientInstance := client.New()
+	email := data.NewUniqueEmail()
+
+	// Send first CreateAccount gRPC request with a unique email
+	_, err := clientInstance.CreateAccount(context.Background(), &accounts.CreateAccountRequest{
+		Email:    email,
+		Name:     "First User",
+		Password: "gUGqyEfWjh3wvK4!QFmr",
+	})
+	if err != nil {
+		t.Fatalf("error creating first user: %v", err)
+	}
+
+	// Send second CreateAccount gRPC request with the same email
 	response, err := clientInstance.CreateAccount(context.Background(), &accounts.CreateAccountRequest{
 		Email:    email,
-		Name:     name,
-		Password: password,
+		Name:     "Second User",
+		Password: "aYP!9im6nCTQuge-4aRb",
 	})
 	if err == nil {
 		t.Logf("response: %v", response)
-		t.Fatalf("no error from accounts service")
+		t.Fatalf("no error creating user with duplicate email: %v", err)
 	}
 
-	// Verify the gRPC error status
+	// Verify the gRPC error
 	t.Logf("error: %v", err)
 	status := status.Convert(err)
 	code := status.Code()
@@ -36,8 +45,8 @@ func TestScenario(t *testing.T) {
 	t.Logf("status code: %v", status)
 	t.Logf("status message: %v", message)
 	t.Logf("status details: %v", details)
-	const expectedCode = codes.InvalidArgument
-	const expectedMessage = "Password was too weak"
+	const expectedCode = codes.AlreadyExists
+	const expectedMessage = "An account with that email already exists"
 	const expectedDetailsLength = 0
 	if code != expectedCode {
 		t.Fatalf("incorrect code: expected=%v, actual=%v", expectedCode, code)

@@ -23,14 +23,17 @@ func NewHandlers() Handlers {
 func (h handlers) CreateAccount(ctx context.Context, request *accounts.CreateAccountRequest) (*accounts.CreateAccountResponse, error) {
 	account, err := core.CreateAccount(&core.CreateAccountInput{Context: ctx, Email: request.Email, Name: request.Name, Password: request.Password})
 	if err != nil {
-		switch err.(type) {
-		case *core.WeakPasswordError:
+		switch err {
+		case core.ErrWeakPassword:
 			return nil, status.Error(codes.InvalidArgument, "Password was too weak")
+		case core.ErrDuplicateEmail:
+			return nil, status.Error(codes.AlreadyExists, "An account with that email already exists")
 		default:
-			return nil, status.Error(codes.Unknown, "Unknown error occurred")
+			return nil, status.Error(codes.Unknown, "An unknown error occurred")
 		}
 	}
+	acc := *account
 
-	response := &accounts.CreateAccountResponse{Email: account.Email, Id: account.ID.String(), Name: account.Name}
+	response := &accounts.CreateAccountResponse{Email: acc.Email(), Id: acc.ID().String(), Name: acc.Name()}
 	return response, nil
 }
