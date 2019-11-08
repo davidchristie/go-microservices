@@ -41,14 +41,7 @@ jobs:
       - name: Run system tests
         env:
           NETWORK: ${{ matrix.environment }}_default
-        run: |
-          docker run \
-              --network $NETWORK \
-              --rm \
-              --volume "$(pwd)/..:/go/src/github.com/davidchristie/go-microservices" \
-              --workdir /go/src/github.com/davidchristie/go-microservices/system-tests \
-              golang \
-              go test ./...
+        run: docker-compose up --exit-code-from system-tests
         working-directory: system-tests
 
   unit-tests:
