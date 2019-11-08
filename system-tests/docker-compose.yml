@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+  system-tests:
+    build:
+      context: ..
+      dockerfile: system-tests/Dockerfile
+    networks:
+      - network
+
+networks:
+  network:
+    external: true
+    name: ${NETWORK}
