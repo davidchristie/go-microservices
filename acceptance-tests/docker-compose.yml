@@ -1,0 +1,18 @@
+version: "3.7"
+
+services:
+  acceptance-tests:
+    # build:
+    #   context: ..
+    #   dockerfile: acceptance-tests/Dockerfile
+    image: golang
+    command: curl api.go-microservices.local
+    extra_hosts:
+      - "api.go-microservices.local:172.16.238.10"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: ${ENVIRONMENT}_proxy

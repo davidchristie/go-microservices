@@ -11,13 +11,17 @@ services:
       - DATABASE_HOST=accounts-database
       - DATABASE_PASSWORD=acc0unts_secret123
       - PORT=5000
-  
+    # networks:
+    #   - accounts
+
   accounts-database:
     environment:
       - POSTGRES_DB=accounts
       - POSTGRES_PASSWORD=acc0unts_secret123
       - POSTGRES_USER=accounts
     image: postgres:12.0
+    # networks:
+    #   - accounts
     restart: always
 
   accounts-database-migrate:
@@ -25,6 +29,8 @@ services:
     depends_on:
       - accounts-database
     image: migrate/migrate
+    # networks:
+    #   - accounts
     restart: on-failure
     volumes:
       - ../../services/accounts/database/migrations:/migrations
@@ -33,8 +39,39 @@ services:
     build:
       context: ../..
       dockerfile: services/gateway/Dockerfile
+    depends_on:
+      - accounts
     environment:
       - ACCOUNTS_URL=accounts:5000
       - PORT=5000
+      - VIRTUAL_HOST=api.go-microservices.local
+    expose:
+      - 5000
+    # networks:
+      # - accounts
+      # - gateway
+
+  proxy:
+    depends_on:
+      - gateway
+    image: jwilder/nginx-proxy
+    networks:
+      default:
+      proxy:
+        ipv4_address: 172.16.238.10
+      # gateway:
+      # proxy:
     ports:
-      - 5000:5000
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+networks:
+  # accounts:
+  # gateway:
+  proxy:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.16.238.0/24

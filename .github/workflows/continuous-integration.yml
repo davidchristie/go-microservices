@@ -1,4 +1,4 @@
-name: Continuous integration
+name: Continuous Integration
 
 on: [push]
 
@@ -17,44 +17,55 @@ jobs:
       - name: Start service containers
         run: docker-compose up -d
         working-directory: environments/${{ matrix.environment }}
-      - name: Install test dependencies
-        run: go get -t ./...
-        working-directory: acceptance-tests
-      - name: Run acceptance tests
-        run: go test ./...
-        working-directory: acceptance-tests
-
-  system-tests:
-    name: System Tests
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        environment: [production]
-    steps:
-      - uses: actions/checkout@v1
-      - name: Build service images
-        run: docker-compose build
+      - name: Print generated proxy configuration
+        run: docker-compose exec -T proxy cat /etc/nginx/conf.d/default.conf
         working-directory: environments/${{ matrix.environment }}
-      - name: Start service containers
-        run: docker-compose up -d
-        working-directory: environments/${{ matrix.environment }}
-      - name: Run system tests
+      - name: Inspect default network
         env:
-          NETWORK: ${{ matrix.environment }}_default
-        run: docker-compose up --exit-code-from system-tests
-        working-directory: system-tests
+          ENVIRONMENT: ${{ matrix.environment }}
+        run:  docker network inspect ${{ matrix.environment }}_default
+        working-directory: environments/${{ matrix.environment }}
+      - name: Run acceptance tests
+        env:
+          ENVIRONMENT: ${{ matrix.environment }}
+        run: docker-compose up
+        working-directory: acceptance-tests
+        continue-on-error: true
+      - name: Print docker service logs
+        run: docker-compose logs
+        working-directory: environments/${{ matrix.environment }}
 
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        directory: [services/accounts]
-    steps:
-      - uses: actions/checkout@v1
-      - name: Install test dependencies
-        run: go get -t ./...
-        working-directory: ${{ matrix.directory }}
-      - name: Run unit tests
-        run: go test -cover ./...
-        working-directory: ${{ matrix.directory }}
+  # system-tests:
+  #   name: System Tests
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       environment: [production]
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #     - name: Build service images
+  #       run: docker-compose build
+  #       working-directory: environments/${{ matrix.environment }}
+  #     - name: Start service containers
+  #       run: docker-compose up -d
+  #       working-directory: environments/${{ matrix.environment }}
+  #     - name: Run system tests
+  #       env:
+  #         ENVIRONMENT: ${{ matrix.environment }}
+  #       run: docker-compose up --exit-code-from system-tests
+  #       working-directory: system-tests
+
+  # unit-tests:
+  #   name: Unit Tests
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       directory: [services/accounts]
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #     - name: Install test dependencies
+  #       run: go get -t ./...
+  #       working-directory: ${{ matrix.directory }}
+  #     - name: Run unit tests
+  #       run: go test -cover ./...
+  #       working-directory: ${{ matrix.directory }}

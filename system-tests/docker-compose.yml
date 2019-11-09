@@ -6,9 +6,9 @@ services:
       context: ..
       dockerfile: system-tests/Dockerfile
     networks:
-      - network
+      - accounts
 
 networks:
-  network:
+  accounts:
     external: true
-    name: ${NETWORK}
+    name: ${ENVIRONMENT}_accounts

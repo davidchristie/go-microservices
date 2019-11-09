@@ -30,7 +30,13 @@ docker-compose build
 docker-compose up -d
 ```
 
-5. You should now be able to open the GraphQL interface in browser by clicking [here](http://localhost:5000).
+5. Append the following line to your `/etc/hosts` file:
+
+```
+127.0.0.1 api.go-microservices.local go-microservices.local
+```
+
+5. You will now be able to open the GraphQL interface in browser by clicking [here](http://api.go-microservices.local).
 
 ## Services
 

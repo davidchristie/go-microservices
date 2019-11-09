@@ -2,14 +2,8 @@
 
 ## Scripts
 
-Install test dependences:
-
-```console
-go get -t ./...
-```
-
 Run the tests:
 
 ```console
-go test ./...
+docker-compose up --exit-code-from acceptance-tests
 ```

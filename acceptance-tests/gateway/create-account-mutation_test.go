@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const url = "http://localhost:5000/query"
+const url = "http://api.go-microservices.local/query"
 
 type Account struct {
 	Email string `json:"email"`
@@ -61,15 +61,17 @@ func sendRequest(variables Variables) *http.Response {
 	return response
 }
 
-func unmarshalResponseBody(response *http.Response) ResponseBody {
+func readResponseBody(response *http.Response) []byte {
 	blob, err := ioutil.ReadAll(response.Body)
-
 	if err != nil {
 		panic(err)
 	}
+	return blob
+}
+
+func unmarshalResponseBody(blob []byte) ResponseBody {
 	body := ResponseBody{}
-	err = json.Unmarshal(blob, &body)
-	if err != nil {
+	if err := json.Unmarshal(blob, &body); err != nil {
 		panic(err)
 	}
 	return body
@@ -83,25 +85,31 @@ func TestRequest(t *testing.T) {
 	})
 	defer response.Body.Close()
 
-	t.Run("StatusCode", func(t *testing.T) {
-		const expected = 200
-		actual := response.StatusCode
-		if actual != expected {
-			t.Errorf(`response.StatusCode = %d; expected %d`, actual, expected)
-		}
-	})
+	expectedStatusCode := 200
+	expectedContentTypeHeader := []string{"application/json"}
 
-	t.Run("ContentTypeHeader", func(t *testing.T) {
-		expected := []string{"application/json"}
-		actual := response.Header["Content-Type"]
-		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf(`response.StatusCode = %s; expected %s`, actual, expected)
-		}
-	})
+	t.Logf("response.StatusCode = %v", response.StatusCode)
+	t.Logf("response.Header = %v", response.Header)
 
-	body := unmarshalResponseBody(response)
-	t.Logf("response body: %s", body)
+	blob := readResponseBody(response)
 
+	t.Logf("response.Body = %v", string(blob))
+
+	body := unmarshalResponseBody(blob)
+
+	// Verify status code
+	actualStatusCode := response.StatusCode
+	if actualStatusCode != expectedStatusCode {
+		t.Errorf("response.StatusCode = %d; expected %d", actualStatusCode, expectedStatusCode)
+	}
+
+	// Verify content type header
+	actualContentTypeHeader := response.Header["Content-Type"]
+	if !reflect.DeepEqual(actualContentTypeHeader, expectedContentTypeHeader) {
+		t.Errorf(`response.Header["Content-Type"] = %s; expected %s`, actualContentTypeHeader, expectedContentTypeHeader)
+	}
+
+	// Verify account ID
 	t.Run("HasAccountID", func(t *testing.T) {
 		_, err := uuid.Parse(body.Data.CreateAccount.ID)
 		if err != nil {
